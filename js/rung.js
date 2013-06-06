@@ -14,37 +14,58 @@ var actions = {
   twitter: {
     label: "Twitter",
     optionText: "What is your Twitter Username?",
-    placeHolder: "@johnmclear"
+    placeHolder: "@johnmclear",
+    prefix: "http://twitter.com/",
+    format: function (option) {
+      return this.prefix + option
+    }
   },
   facebook: {
     label: "Facebook",
     optionText: "What is your Facebook Page URL?",
-    placeHolder: "http://facebook.com/rung.cake24"
+    placeHolder: "http://facebook.com/ring.cake24",
+    prefix: "http://facebook.com/",
+    format: function (option) {
+      return this.prefix + option
+    }
   },
   clone: {
-    label: "Clone Rung",
+    label: "Clone Ring",
     isClone: true,
     requiresString: false
   },
   website: {
     label: "Website",
     optionText: "What is the URL of the website?",
-    placeHolder: "http://mclear.co.uk"
+    placeHolder: "http://mclear.co.uk",
+    format: function (option) {
+      return option
+    }
   },
+  /*
+  ,
   skype: {
     label: "Skype",
     optionText: "What is your Skype Username?",
     placeHolder: "JohnMcLear"
-  },
+  }
+  */
   etherpad: {
     label: "Etherpad",
     optionText: "What is your Pad URL?",
-    placeHolder: "http://beta.etherpad.org/p/foowie"
+    placeHolder: "http://beta.etherpad.org/p/foowie",
+    format: function (option) {
+      return option
+    }
   },
-  youtube:{
+  youtube: {
     label: "Youtube",
-	optionText: "What is your Youtube Video / Channel URL?",
-	placeHolder: "http://youtube.com/johnyma22"
+    optionText: "What is your Youtube Video / Channel?",
+    placeHolder: "johnyma22",
+    prefix: "http://youtube.com",
+    format: function (option) {
+      return this.prefix + option
+    }
   }
 };
 
@@ -107,14 +128,6 @@ $(document).ready(function(){
 	$('.landing > .overlay').html("Starting QR Code Scanner<br/><img src='img/loading.gif'>");
     scan(); // This can take some time to execute...
   })
-/*
-  $("body").on('click', ".back", function(){
-    debug("going back from step: "+step);
-    step = step -1 ;// this is gonna be weird for non standard routes
-    debug("to step: "+step);
-    $(this).parent().hide(); // hide parent div
-  });
-*/
   setTimeout(function() {  // ghetto but required to scroll browser back to top on new load
     window.scrollTo(0, 1) }, 
   100);
@@ -201,6 +214,7 @@ function generateQR(){ // Create a QR from an API and write it to dom
 
 
 function showQR(){
+  option = $('#optionInput').val();
   showCompleted("platform");
   if(ga){ // if ga has executed
     ga('send', 'generateQR', action, option); // send event to GA
@@ -244,75 +258,4 @@ function readCookie(name) {
 
 function eraseCookie(name) {
     createCookie(name, "", -1);
-}
-
-function scan(){
-  try {
-    window.plugins.barcodeScanner.scan(function(args) {
-      debug("Scanner result: \n" +
-                    "text: " + args.text + "\n" +
-                    "format: " + args.format + "\n" +
-                    "cancelled: " + args.cancelled + "\n");
-      /*
-      if (args.format == "QR_CODE") {
-      window.plugins.childBrowser.showWebPage(args.text, { showLocationBar: false });
-      }
-      */
-      // document.getElementById("info").innerHTML = args.text;
-	  alert("Scanned QRCode, Hold your Rung to the NFC antenna on your device now then Press Ok..  Note: It's usually on the back");
-      writeTag(args.text);
-    });
-  } catch (ex) {
-    debug(ex.text);
-	alert(ex.text);
-	writeTag(ex.text);
-  }
-}
-
-function cloneTag(){
-  nfc.addNdefListener (
-    function (nfcEvent) {
-      var tag = nfcEvent.tag
-      var ndefMessage = tag.ndefMessage;
-      // note: read code will need to decode
-      // the payload from each record
-      alert(JSON.stringify(ndefMessage));
-      writeTag(ndefMessage);
-    }, 
-    function () { // success callback
-      alert("Wrote Action to Rung!  Congrats!");
-    },
-    function (error) { // error callback
-      alert("Error adding NDEF listener " + JSON.stringify(error));
-    }
-  );
-}
-
-function writeTag(tag){
-  debug("Listening for a rung tag to which I will write"+tag);
-  nfc.addNdefListener (
-    function (nfcEvent) {
-    var ndefRecord = ndef.uriRecord(tag.text)
-    var ndefMessage = [];
-    ndefMessage.push();
-
-    nfc.write(ndefMessage, writeSuccess(tag), writeFailure(tag)); // The actual write of the tag
-	
-	}, 
-    function () { // success callback
-      alert("Waiting for rung");
-    },
-    function (error) { // error callback
-      alert("Error adding NDEF listener " + JSON.stringify(error));
-    }
-  );
-}
-
-function writeSuccess(tag){
-  alert("Rung successfully written, test action by holding your rung to your device");
-}
-
-function writeFailure(tag){
-  alert("Failed to write, trying again");
-  writeTag(tag);
 }
